@@ -1,0 +1,273 @@
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.page{padding:1.5rem;font-family:var(--font-sans);}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+.top-banner{background:#185FA5;border-radius:var(--border-radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.banner-left{display:flex;align-items:center;gap:14px;}
+.banner-icon{width:40px;height:40px;border-radius:var(--border-radius-md);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;}
+.banner-title{font-size:16px;font-weight:500;color:#fff;}
+.banner-sub{font-size:13px;color:#B5D4F4;margin-top:2px;}
+.banner-badge{background:rgba(255,255,255,0.15);border:0.5px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 14px;font-size:12px;color:#fff;white-space:nowrap;}
+.meta-row{display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.meta-card{flex:1;min-width:160px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.meta-card-icon{font-size:18px;color:#185FA5;}
+.meta-card label{font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em;}
+.meta-card input{font-size:13px;font-weight:500;color:var(--color-text-primary);border:none;background:transparent;outline:none;width:100%;}
+.meta-card input:focus{color:#185FA5;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem;}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;}
+.stat-num{font-size:22px;font-weight:500;color:var(--color-text-primary);}
+.stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px;}
+.table-wrap{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.25rem;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+thead tr{background:#E6F1FB;}
+th{padding:10px 12px;font-size:12px;font-weight:500;color:#0C447C;text-align:left;border-bottom:0.5px solid #B5D4F4;}
+th.center{text-align:center;}
+tbody tr{border-bottom:0.5px solid var(--color-border-tertiary);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--color-background-secondary);}
+td{padding:0;vertical-align:middle;}
+td.num-cell{text-align:center;width:42px;}
+.row-num{width:26px;height:26px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:12px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;}
+td input{width:100%;border:none;background:transparent;font-size:13px;color:var(--color-text-primary);padding:10px 12px;outline:none;}
+td input:focus{background:#E6F1FB;color:#042C53;}
+td.age-col{width:72px;}
+td.ward-col{width:72px;}
+td.del-col{width:40px;text-align:center;}
+td.del-col button{background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:16px;padding:4px;border-radius:6px;display:inline-flex;align-items:center;}
+td.del-col button:hover{color:#A32D2D;background:#FCEBEB;}
+.empty-state{padding:2.5rem;text-align:center;color:var(--color-text-secondary);}
+.empty-state i{font-size:32px;display:block;margin-bottom:8px;color:var(--color-border-secondary);}
+.empty-state p{font-size:13px;}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);}
+.btn:hover{background:var(--color-background-secondary);}
+.btn-blue{background:#185FA5;color:#fff;border-color:#185FA5;}
+.btn-blue:hover{background:#0C447C;border-color:#0C447C;}
+.btn-outline-blue{border-color:#185FA5;color:#185FA5;}
+.btn-outline-blue:hover{background:#E6F1FB;}
+.toast{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#185FA5;color:#fff;font-size:13px;padding:8px 20px;border-radius:20px;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+.wrap-rel{position:relative;}
+</style>
+
+<div class="page wrap-rel">
+<h2 class="sr-only">Routine theatre list — enter surgical cases and download as clean PDF</h2>
+
+<div class="top-banner">
+  <div class="banner-left">
+    <div class="banner-icon"><i class="ti ti-scalpel" aria-hidden="true"></i></div>
+    <div>
+      <div class="banner-title" id="banner-title-display">Routine Theatre</div>
+      <div class="banner-sub" id="banner-sub-display">Surgery B side</div>
+    </div>
+  </div>
+  <div class="banner-badge" id="banner-date-badge"></div>
+</div>
+
+<div class="meta-row">
+  <div class="meta-card">
+    <i class="ti ti-clipboard-text meta-card-icon" aria-hidden="true"></i>
+    <div style="flex:1;">
+      <label>Session title</label>
+      <input id="f-title" value="Routine Theatre" oninput="updateBanner()" />
+    </div>
+  </div>
+  <div class="meta-card">
+    <i class="ti ti-calendar meta-card-icon" aria-hidden="true"></i>
+    <div style="flex:1;">
+      <label>Date</label>
+      <input id="f-date" type="date" oninput="updateBanner()" />
+    </div>
+  </div>
+  <div class="meta-card">
+    <i class="ti ti-building-hospital meta-card-icon" aria-hidden="true"></i>
+    <div style="flex:1;">
+      <label>Theatre side</label>
+      <input id="f-side" value="Surgery B side" oninput="updateBanner()" />
+    </div>
+  </div>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">Total cases</div></div>
+  <div class="stat"><div class="stat-num" id="s-ward7">0</div><div class="stat-lbl">Ward 7B</div></div>
+  <div class="stat"><div class="stat-num" id="s-ward8">0</div><div class="stat-lbl">Ward 8B</div></div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="center" style="width:42px;">#</th>
+        <th style="width:22%;">Surgery</th>
+        <th style="width:22%;">Indication</th>
+        <th>Patient's name</th>
+        <th style="width:72px;">Age</th>
+        <th style="width:80px;">Ward</th>
+        <th class="center" style="width:40px;"></th>
+      </tr>
+    </thead>
+    <tbody id="list-body"></tbody>
+  </table>
+  <div class="empty-state" id="empty-state">
+    <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+    <p>No cases yet — tap <strong>Add case</strong> to begin</p>
+  </div>
+</div>
+
+<div class="action-row">
+  <button class="btn btn-outline-blue" onclick="addRow()"><i class="ti ti-plus" aria-hidden="true"></i> Add case</button>
+  <button class="btn btn-blue" onclick="generatePDF()"><i class="ti ti-file-download" aria-hidden="true"></i> Download PDF</button>
+</div>
+<div class="toast" id="toast">PDF downloaded</div>
+</div>
+
+<script>
+var rows=[];
+function esc(v){return(v||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function fmtDate(val){if(!val)return'';var d=new Date(val+'T00:00:00');return d.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmtDateBadge(val){if(!val)return'';var d=new Date(val+'T00:00:00');return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+
+function renderRows(){
+  var tb=document.getElementById('list-body');
+  var es=document.getElementById('empty-state');
+  tb.innerHTML='';
+  if(rows.length===0){if(es)es.style.display='';return;}
+  if(es)es.style.display='none';
+  rows.forEach(function(r,i){
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td class="num-cell"><span class="row-num">'+String(i+1).padStart(2,'0')+'</span></td>'+
+      '<td><input value="'+esc(r.surgery)+'" placeholder="Surgery name" oninput="rows['+i+'].surgery=this.value;updateStats()" /></td>'+
+      '<td><input value="'+esc(r.indication)+'" placeholder="Indication" oninput="rows['+i+'].indication=this.value" /></td>'+
+      '<td><input value="'+esc(r.name)+'" placeholder="Patient name" oninput="rows['+i+'].name=this.value" /></td>'+
+      '<td class="age-col"><input value="'+esc(r.age)+'" placeholder="Age" oninput="rows['+i+'].age=this.value" /></td>'+
+      '<td class="ward-col"><input value="'+esc(r.ward)+'" placeholder="Ward" oninput="rows['+i+'].ward=this.value;updateStats()" /></td>'+
+      '<td class="del-col"><button onclick="deleteRow('+i+')" aria-label="Remove row"><i class="ti ti-trash"></i></button></td>';
+    tb.appendChild(tr);
+  });
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('s-total').textContent=rows.length;
+  document.getElementById('s-ward7').textContent=rows.filter(function(r){return(r.ward||'').trim().toUpperCase()==='7B';}).length;
+  document.getElementById('s-ward8').textContent=rows.filter(function(r){return(r.ward||'').trim().toUpperCase()==='8B';}).length;
+}
+
+function updateBanner(){
+  var t=document.getElementById('f-title').value||'Routine Theatre';
+  var s=document.getElementById('f-side').value||'Surgery B side';
+  var dv=document.getElementById('f-date').value;
+  document.getElementById('banner-title-display').textContent=t;
+  document.getElementById('banner-sub-display').textContent=s;
+  document.getElementById('banner-date-badge').textContent=fmtDateBadge(dv);
+}
+
+function addRow(){
+  rows.push({surgery:'',indication:'',name:'',age:'',ward:''});
+  renderRows();
+  var inputs=document.getElementById('list-body').querySelectorAll('tr:last-child input');
+  if(inputs.length)inputs[0].focus();
+}
+
+function deleteRow(i){rows.splice(i,1);renderRows();}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+function generatePDF(){
+  if(!window.jspdf){showToast('PDF library not ready, try again');return;}
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+
+  var title=document.getElementById('f-title').value||'Routine Theatre';
+  var side=document.getElementById('f-side').value||'Surgery B side';
+  var dv=document.getElementById('f-date').value;
+  var dateStr=fmtDate(dv);
+
+  var ml=14, mr=14;
+  var pageW=210;
+  var usable=pageW-ml-mr;
+  var y=16;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(12);
+  doc.setTextColor(0,0,0);
+  doc.text(title+(dateStr?' \u2013 '+dateStr:''), ml, y);
+  y+=6;
+  doc.setFontSize(11);
+  doc.text(side, ml, y);
+  y+=8;
+
+  var cols=[
+    {header:'',          w:10,  key:'num',        align:'center'},
+    {header:'Surgery',   w:46,  key:'surgery',     align:'left'},
+    {header:'Indication',w:44,  key:'indication',  align:'left'},
+    {header:"Patient's Name", w:52, key:'name',    align:'left'},
+    {header:'Age',       w:14,  key:'age',         align:'left'},
+    {header:'Ward',      w:16,  key:'ward',        align:'left'},
+  ];
+
+  var rowH=8;
+  var headH=8;
+  var fs=10;
+
+  doc.setDrawColor(0,0,0);
+  doc.setLineWidth(0.3);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(fs);
+  doc.setTextColor(0,0,0);
+  var hx=ml;
+  cols.forEach(function(c){
+    doc.rect(hx, y, c.w, headH);
+    var tx=c.align==='center'?hx+c.w/2:hx+1.5;
+    doc.text(c.header, tx, y+headH/2+1.8, {align:c.align==='center'?'center':'left'});
+    hx+=c.w;
+  });
+  y+=headH;
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(fs);
+  doc.setTextColor(0,0,0);
+
+  rows.forEach(function(r,i){
+    var vals={
+      num:String(i+1).padStart(2,'0'),
+      surgery:r.surgery||'',
+      indication:r.indication||'',
+      name:r.name||'',
+      age:r.age||'',
+      ward:r.ward||''
+    };
+    var rx=ml;
+    cols.forEach(function(c){
+      doc.rect(rx, y, c.w, rowH);
+      var val=vals[c.key];
+      var maxChars=Math.floor(c.w/1.9);
+      if(val.length>maxChars)val=val.substring(0,maxChars-1)+'\u2026';
+      var tx=c.align==='center'?rx+c.w/2:rx+1.5;
+      doc.text(val, tx, y+rowH/2+1.8, {align:c.align==='center'?'center':'left'});
+      rx+=c.w;
+    });
+    y+=rowH;
+  });
+
+  var filename='Theatre_List_'+(dateStr.replace(/\//g,'-')||'today')+'.pdf';
+  doc.save(filename);
+  showToast('PDF downloaded');
+}
+
+var today=new Date();
+document.getElementById('f-date').value=today.toISOString().split('T')[0];
+updateBanner();
+renderRows();
+</script>
